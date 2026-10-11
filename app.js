@@ -20,7 +20,7 @@
   }
 
   // ---------------------------------------------------------------- settings
-  const DEFAULTS = { scale: "sharp", cycles: "auto", longpress: "450", rbtn: "1", launch: "game" };
+  const DEFAULTS = { audio: "normal", scale: "sharp", cycles: "auto", longpress: "450", rbtn: "1", launch: "game" };
   function loadSettings() {
     try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem("orionpad.settings") || "{}") }; }
     catch { return { ...DEFAULTS }; }
@@ -158,9 +158,9 @@
       `cycles=${cycles}`,
       "",
       "[mixer]",
-      "rate=22050",
-      "blocksize=4096",
-      "prebuffer=120",
+      settings.audio === "smooth" ? "rate=22050" : "rate=44100",
+      "blocksize=2048",
+      settings.audio === "smooth" ? "prebuffer=80" : "prebuffer=40",
       "",
       "[sblaster]",
       "sbtype=sb16",
@@ -588,6 +588,7 @@
     applyScale();
     bindSetting("#set-scale", "scale", applyScale);
     bindSetting("#set-cycles", "cycles");
+    bindSetting("#set-audio", "audio");
     bindSetting("#set-longpress", "longpress");
     bindSetting("#set-rbtn", "rbtn");
     bindSetting("#set-launch", "launch");
