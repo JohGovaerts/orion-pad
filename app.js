@@ -158,9 +158,9 @@
       `cycles=${cycles}`,
       "",
       "[mixer]",
-      "rate=44100",
-      "blocksize=2048",
-      "prebuffer=40",
+      "rate=22050",
+      "blocksize=4096",
+      "prebuffer=120",
       "",
       "[sblaster]",
       "sbtype=sb16",
@@ -390,6 +390,8 @@
   let multiMoved = false;
   const mouseHeld = new Set();
   const DRAG_PX = 12;
+  const TAP_SETTLE_MS = 45; // pause between moving the cursor and pressing
+  const TAP_HOLD_MS = 100;  // how long a tap holds the button down
 
   function releaseAll() {
     clearTimeout(longTimer);
@@ -430,6 +432,7 @@
     longTimer = setTimeout(() => {
       if (!leftHeld && !multi && touches.size === 1) {
         rightHeld = true;
+        moveTo(touches.values().next().value.x0, touches.values().next().value.y0);
         button(btnRight(), true);
         if (navigator.vibrate) navigator.vibrate(10);
       }
@@ -453,7 +456,7 @@
       clearTimeout(longTimer);
       moveTo(t.x0, t.y0);
       leftHeld = true;
-      button(BTN_LEFT, true);
+      setTimeout(() => { if (leftHeld) button(BTN_LEFT, true); }, TAP_SETTLE_MS);
     }
     if (leftHeld || rightHeld) moveTo(t.x, t.y);
   }
@@ -488,10 +491,13 @@
       button(BTN_LEFT, false);
       leftHeld = false;
     } else {
-      // Plain tap: hold the button briefly so the DOS game's polling sees it.
+      // Plain tap: move first, give the game a moment to see the cursor arrive,
+      // then hold the button long enough for its polling to notice the click.
+      moveTo(t.x, t.y);
+      await sleep(TAP_SETTLE_MS);
       moveTo(t.x, t.y);
       button(BTN_LEFT, true);
-      await sleep(60);
+      await sleep(TAP_HOLD_MS);
       button(BTN_LEFT, false);
     }
   }
