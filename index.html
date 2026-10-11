@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Orion Pad</title>
+
+  <!-- Home-screen web app (iPadOS / iOS) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Orion Pad">
+  <meta name="theme-color" content="#05070d">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+  <!-- js-dos v8 (DOSBox compiled to WebAssembly), loaded from its official CDN -->
+  <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+  <script src="https://v8.js-dos.com/latest/js-dos.js" defer></script>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- Emulator stage -->
+  <div id="stage" hidden>
+    <div id="dos"></div>
+    <div id="touch-layer" aria-hidden="true"></div>
+    <button id="menu-btn" class="float-btn" aria-label="Menu">☰</button>
+  </div>
+
+  <!-- Start / setup screen -->
+  <main id="home" class="screen">
+    <div class="card">
+      <h1>Orion&nbsp;Pad</h1>
+      <p class="sub">Your own copy of Master of Orion II, running in DOSBox on the iPad.</p>
+
+      <div id="status" class="status">Checking storage…</div>
+
+      <div class="actions">
+        <button id="play-btn" class="primary" disabled>Play</button>
+        <label class="button" id="load-label">
+          <input type="file" id="zip-input" accept=".zip,application/zip" hidden>
+          <span id="load-text">Load game .zip</span>
+        </label>
+      </div>
+
+      <details class="settings">
+        <summary>Settings</summary>
+        <div class="row">
+          <label for="set-scale">Pixels</label>
+          <select id="set-scale">
+            <option value="sharp">Sharp (pixelated)</option>
+            <option value="smooth">Smooth</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="set-cycles">CPU speed</label>
+          <select id="set-cycles">
+            <option value="auto">Auto</option>
+            <option value="20000">Fixed 20000</option>
+            <option value="40000">Fixed 40000</option>
+            <option value="60000">Fixed 60000</option>
+            <option value="max">Max</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="set-longpress">Long-press (ms)</label>
+          <select id="set-longpress">
+            <option value="350">350</option>
+            <option value="450">450</option>
+            <option value="600">600</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="set-rbtn">Right-click code</label>
+          <select id="set-rbtn">
+            <option value="1">1 (default)</option>
+            <option value="2">2 (try if right-click acts as middle)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="set-launch">Launch</label>
+          <select id="set-launch">
+            <option value="game">Game (ORION2.EXE)</option>
+            <option value="game150">Game 1.50 patch (ORION150.EXE)</option>
+            <option value="setup">Sound setup (SETSOUND.EXE)</option>
+            <option value="prompt">DOS prompt</option>
+          </select>
+        </div>
+        <div class="row buttons">
+          <button id="export-btn">Export saves</button>
+          <label class="button">
+            <input type="file" id="import-input" accept=".zip,application/zip" hidden>
+            Import saves
+          </label>
+        </div>
+        <div class="row buttons">
+          <button id="forget-btn" class="danger">Remove game from this iPad</button>
+        </div>
+      </details>
+
+      <p class="help">
+        Tap = left-click · Long-press = right-click · Drag = hold left button ·
+        Two-finger tap = Esc · Trackpad and keyboard work as normal.
+      </p>
+    </div>
+  </main>
+
+  <!-- In-game menu -->
+  <div id="menu" class="sheet" hidden>
+    <div class="sheet-card">
+      <button data-act="esc">Send Esc</button>
+      <button data-act="enter">Send Enter</button>
+      <button data-act="fullscreen">Toggle fullscreen</button>
+      <button data-act="save">Save to iPad now</button>
+      <button data-act="quit" class="danger">Quit to start screen</button>
+      <button data-act="close" class="primary">Back to game</button>
+    </div>
+  </div>
+
+  <!-- Portrait warning -->
+  <div id="rotate" aria-live="polite">
+    <div class="rotate-icon">⟳</div>
+    <p>Turn your iPad to landscape</p>
+  </div>
+
+  <div id="toast" role="status"></div>
+</body>
+</html>
