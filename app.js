@@ -535,6 +535,7 @@
   function onKey(e) {
     if (!playing || !ci || !$("#menu").hidden) return;
     if (e.target && e.target.id === "kbd-input") return; // handled by the on-screen keyboard bridge
+    if (!$("#cheats").hidden || (e.target && e.target.tagName === "INPUT")) return;
     const code = CODE_MAP[e.code];
     if (code === undefined) return;
     e.preventDefault();
@@ -638,6 +639,37 @@
     if (v) { typeText(v); e.target.value = ""; }
   }
 
+  // ---------------------------------------------------------------- cheats
+  // MOO2 reads cheat codes as letters typed while Alt is held.
+  const ALT = 342;
+  async function sendCheat(word) {
+    word = (word || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!word || !ci) return;
+    closeCheats();
+    while (keyPumping) await sleep(30); // let any queued typing finish first
+    keyPumping = true;
+    try {
+      await sleep(150); // give the game a moment after the panel closes
+      ci.sendKeyEvent(ALT, true);
+      await sleep(60);
+      for (const ch of word) {
+        const k = CHAR_MAP[ch];
+        if (!k) continue;
+        ci.sendKeyEvent(k[0], true);
+        await sleep(50);
+        ci.sendKeyEvent(k[0], false);
+        await sleep(50);
+      }
+      await sleep(60);
+    } finally {
+      if (ci) ci.sendKeyEvent(ALT, false);
+      keyPumping = false;
+    }
+    toast(`Sent Alt + ${word}`);
+  }
+  function openCheats() { releaseAll(); $("#cheats").hidden = false; }
+  function closeCheats() { $("#cheat-input").blur(); $("#cheats").hidden = true; }
+
   // ---------------------------------------------------------------- menu
   function openMenu() { releaseAll(); $("#menu").hidden = false; }
   function closeMenu() { $("#menu").hidden = true; }
@@ -657,6 +689,7 @@
     switch (act) {
       case "esc": closeMenu(); sendKey(KEY.Escape); break;
       case "keyboard": closeMenu(); kbdOpen(); break;
+      case "cheats": closeMenu(); openCheats(); break;
       case "enter": closeMenu(); sendKey(KEY.Enter); break;
       case "fullscreen": closeMenu(); toggleFullscreen(); break;
       case "save": await saveNow(false); break;
@@ -728,6 +761,17 @@
     kbdInput.addEventListener("beforeinput", onKbdBeforeInput);
     kbdInput.addEventListener("input", onKbdInput);
     kbdInput.addEventListener("blur", () => kbdBtn.classList.remove("on"));
+
+    $("#cheats").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (btn && btn.dataset.cheat) sendCheat(btn.dataset.cheat);
+      else if (btn && btn.hasAttribute("data-cheat-close")) closeCheats();
+      else if (e.target.id === "cheats") closeCheats();
+    });
+    $("#cheat-send").addEventListener("click", () => sendCheat($("#cheat-input").value));
+    $("#cheat-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); sendCheat(e.target.value); }
+    });
     $("#menu").addEventListener("click", (e) => {
       const act = e.target.closest("button")?.dataset.act;
       if (act) onMenuAction(act);

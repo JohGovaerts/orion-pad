@@ -43,7 +43,8 @@ The site holds no game data, so it's fine for it to be public.
 | Drag | Hold left button (sliders, scrollbars) |
 | Two-finger tap | Esc |
 | ⌨ button (top right) | Opens the iPad keyboard to type names (closes after Enter) |
-| ☰ button (top right) | Esc / Enter / fullscreen / save / quit |
+| ☰ button (top right) | Esc / Enter / keyboard / cheats / fullscreen / save / quit |
+| ☰ → Cheats | Sends Alt + a cheat code (e.g. moola) on the galaxy screen |
 | Trackpad or mouse | Works normally, including right-click |
 | Hardware keyboard | All game hotkeys |
 

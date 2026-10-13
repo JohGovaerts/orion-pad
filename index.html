@@ -125,11 +125,33 @@
     <div class="sheet-card">
       <button data-act="esc">Send Esc</button>
       <button data-act="keyboard">Keyboard</button>
+      <button data-act="cheats">Cheats</button>
       <button data-act="enter">Send Enter</button>
       <button data-act="fullscreen">Toggle fullscreen</button>
       <button data-act="save">Save to iPad now</button>
       <button data-act="quit" class="danger">Quit to start screen</button>
       <button data-act="close" class="primary">Back to game</button>
+    </div>
+  </div>
+
+
+  <!-- Cheat codes: sent as Alt held + letters, like on the original keyboard -->
+  <div id="cheats" class="sheet" hidden>
+    <div class="sheet-card cheat-card">
+      <p class="cheat-note">Galaxy screen. The code is typed while Alt is held down.</p>
+      <button data-cheat="moola">moola<small>+1000 BC</small></button>
+      <button data-cheat="einstein">einstein<small>all tech</small></button>
+      <button data-cheat="menlo">menlo<small>finish research</small></button>
+      <button data-cheat="iseeall">iseeall<small>reveal map</small></button>
+      <button data-cheat="crunch">crunch<small>finish build</small></button>
+      <button data-cheat="canbuild">canbuild<small>build anything</small></button>
+      <button data-cheat="score">score<small>show score</small></button>
+      <div class="cheat-free">
+        <input id="cheat-input" type="text" placeholder="other code" autocomplete="off"
+               autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+        <button id="cheat-send">Send</button>
+      </div>
+      <button data-cheat-close class="primary">Back to game</button>
     </div>
   </div>
 

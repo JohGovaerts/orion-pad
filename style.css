@@ -229,3 +229,22 @@ body.portrait #rotate { display: flex; }
   transition: opacity .2s, transform .2s;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Cheats ---------- */
+.cheat-card button[data-cheat] { flex-direction: column; gap: 2px; }
+.cheat-card small { font-weight: 400; font-size: 12px; color: var(--muted); }
+.cheat-note { grid-column: 1 / -1; margin: 0 0 4px; font-size: 13px; color: var(--muted); }
+.cheat-free { grid-column: 1 / -1; display: flex; gap: 10px; }
+.cheat-free input {
+  flex: 1;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 12px;
+  min-height: 48px;
+  -webkit-user-select: text;
+  user-select: text;
+}

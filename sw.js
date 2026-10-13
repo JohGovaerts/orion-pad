@@ -1,6 +1,6 @@
 /* Offline cache: the app shell plus the js-dos emulator files from its CDN.
  * Game data never goes through here; it lives in IndexedDB. */
-const VERSION = "orionpad-v4";
+const VERSION = "orionpad-v5";
 const SHELL = [
   "./",
   "index.html",
