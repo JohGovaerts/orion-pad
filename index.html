@@ -30,6 +30,9 @@
     <div id="dos"></div>
     <div id="touch-layer" aria-hidden="true"></div>
     <button id="menu-btn" class="float-btn" aria-label="Menu">☰</button>
+    <button id="kbd-btn" class="float-btn" aria-label="Keyboard">⌨</button>
+    <input id="kbd-input" type="text" autocomplete="off" autocorrect="off"
+           autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-hidden="true">
   </div>
 
   <!-- Start / setup screen -->
@@ -121,6 +124,7 @@
   <div id="menu" class="sheet" hidden>
     <div class="sheet-card">
       <button data-act="esc">Send Esc</button>
+      <button data-act="keyboard">Keyboard</button>
       <button data-act="enter">Send Enter</button>
       <button data-act="fullscreen">Toggle fullscreen</button>
       <button data-act="save">Save to iPad now</button>

@@ -331,6 +331,7 @@
 
   async function quit() {
     closeMenu();
+    kbdClose();
     toast("Saving…");
     await saveNow(true);
     clearInterval(autosaveTimer);
@@ -533,12 +534,108 @@
 
   function onKey(e) {
     if (!playing || !ci || !$("#menu").hidden) return;
+    if (e.target && e.target.id === "kbd-input") return; // handled by the on-screen keyboard bridge
     const code = CODE_MAP[e.code];
     if (code === undefined) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     if (e.type === "keydown" && e.repeat && code >= 340) return;
     ci.sendKeyEvent(code, e.type === "keydown");
+  }
+
+  // ---------------------------------------------------------------- on-screen keyboard
+  // The DOS game can't tell iOS that a text field is open, so the ⌨ button focuses a
+  // hidden input (summoning the iPad keyboard) and typed characters are replayed into DOSBox.
+  const SHIFT = 340;
+  const CHAR_MAP = (() => {
+    const m = { " ": [32], "-": [45], ".": [46], ",": [44], "'": [39], "/": [47], ";": [59], "=": [61],
+      "[": [91], "]": [93], "\\": [92], "`": [96],
+      "!": [49, 1], "@": [50, 1], "#": [51, 1], "$": [52, 1], "%": [53, 1], "^": [54, 1], "&": [55, 1],
+      "*": [56, 1], "(": [57, 1], ")": [48, 1], "_": [45, 1], "+": [61, 1], ":": [59, 1], "\"": [39, 1],
+      "?": [47, 1], "<": [44, 1], ">": [46, 1], "{": [91, 1], "}": [93, 1], "|": [92, 1], "~": [96, 1] };
+    for (let i = 0; i < 10; i++) m[String(i)] = [48 + i];
+    for (let i = 0; i < 26; i++) {
+      m[String.fromCharCode(97 + i)] = [65 + i];
+      m[String.fromCharCode(65 + i)] = [65 + i, 1];
+    }
+    // Common accented letters fall back to their plain letter (DOS has no Unicode input)
+    const acc = { "à":"a","á":"a","â":"a","ä":"a","è":"e","é":"e","ê":"e","ë":"e","ì":"i","í":"i","î":"i","ï":"i",
+      "ò":"o","ó":"o","ô":"o","ö":"o","ù":"u","ú":"u","û":"u","ü":"u","ç":"c","ñ":"n",
+      "’":"'","‘":"'","“":"\"","”":"\"" };
+    for (const [k, v] of Object.entries(acc)) m[k] = m[v];
+    return m;
+  })();
+  const KEY_NAMES = { Enter: 257, Backspace: 259, Escape: 256, Tab: 258,
+    ArrowLeft: 263, ArrowRight: 262, ArrowUp: 265, ArrowDown: 264, Delete: 261, Home: 268, End: 269 };
+
+  // Keys are queued and played with small gaps so the DOS game's keyboard polling sees each one.
+  const keyQueue = [];
+  let keyPumping = false;
+  function queueKey(code, shift = false) {
+    keyQueue.push([code, shift]);
+    if (!keyPumping) pumpKeys();
+  }
+  async function pumpKeys() {
+    keyPumping = true;
+    while (keyQueue.length) {
+      const [code, shift] = keyQueue.shift();
+      if (!ci) break;
+      if (shift) { ci.sendKeyEvent(SHIFT, true); await sleep(15); }
+      ci.sendKeyEvent(code, true);
+      await sleep(35);
+      ci.sendKeyEvent(code, false);
+      if (shift) { await sleep(15); ci.sendKeyEvent(SHIFT, false); }
+      await sleep(25);
+    }
+    keyQueue.length = 0;
+    keyPumping = false;
+  }
+  function typeText(text) {
+    for (const ch of text) {
+      const k = CHAR_MAP[ch];
+      if (k) queueKey(k[0], !!k[1]);
+    }
+  }
+
+  let lastBackspace = 0;
+  function kbdOpen() {
+    const inp = $("#kbd-input");
+    inp.value = "";
+    inp.focus({ preventScroll: true }); // must run synchronously inside the tap handler on iOS
+    $("#kbd-btn").classList.add("on");
+  }
+  function kbdClose() {
+    $("#kbd-input").blur();
+  }
+  function kbdToggle() {
+    if (document.activeElement === $("#kbd-input")) kbdClose();
+    else kbdOpen();
+  }
+  function onKbdKeyDown(e) {
+    const code = KEY_NAMES[e.key];
+    if (code === undefined) return; // printable characters arrive via beforeinput
+    e.preventDefault();
+    e.stopPropagation();
+    if (code === 259) lastBackspace = performance.now();
+    queueKey(code);
+    if (e.key === "Enter") setTimeout(kbdClose, 150); // name confirmed: put the keyboard away
+  }
+  function onKbdBeforeInput(e) {
+    e.preventDefault(); // keep the hidden field empty; everything goes to DOSBox
+    const t = e.inputType;
+    if (t === "insertText" || t === "insertReplacementText" || t === "insertFromPaste") {
+      if (e.data) typeText(e.data);
+    } else if (t === "deleteContentBackward") {
+      if (performance.now() - lastBackspace > 80) queueKey(259);
+    } else if (t === "insertLineBreak" || t === "insertParagraph") {
+      queueKey(257);
+      setTimeout(kbdClose, 150);
+    }
+  }
+  function onKbdInput(e) {
+    // Fallback for browsers that ignore preventDefault on beforeinput
+    const v = e.target.value;
+    if (v) { typeText(v); e.target.value = ""; }
   }
 
   // ---------------------------------------------------------------- menu
@@ -559,6 +656,7 @@
   async function onMenuAction(act) {
     switch (act) {
       case "esc": closeMenu(); sendKey(KEY.Escape); break;
+      case "keyboard": closeMenu(); kbdOpen(); break;
       case "enter": closeMenu(); sendKey(KEY.Enter); break;
       case "fullscreen": closeMenu(); toggleFullscreen(); break;
       case "save": await saveNow(false); break;
@@ -622,6 +720,14 @@
     window.addEventListener("keyup", onKey, true);
 
     $("#menu-btn").addEventListener("click", openMenu);
+    const kbdBtn = $("#kbd-btn");
+    kbdBtn.addEventListener("pointerdown", (e) => e.preventDefault()); // don't steal focus from the field
+    kbdBtn.addEventListener("click", kbdToggle);
+    const kbdInput = $("#kbd-input");
+    kbdInput.addEventListener("keydown", onKbdKeyDown);
+    kbdInput.addEventListener("beforeinput", onKbdBeforeInput);
+    kbdInput.addEventListener("input", onKbdInput);
+    kbdInput.addEventListener("blur", () => kbdBtn.classList.remove("on"));
     $("#menu").addEventListener("click", (e) => {
       const act = e.target.closest("button")?.dataset.act;
       if (act) onMenuAction(act);

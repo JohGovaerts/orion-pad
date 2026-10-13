@@ -42,6 +42,7 @@ The site holds no game data, so it's fine for it to be public.
 | Long-press | Right-click (held until you lift) |
 | Drag | Hold left button (sliders, scrollbars) |
 | Two-finger tap | Esc |
+| ⌨ button (top right) | Opens the iPad keyboard to type names (closes after Enter) |
 | ☰ button (top right) | Esc / Enter / fullscreen / save / quit |
 | Trackpad or mouse | Works normally, including right-click |
 | Hardware keyboard | All game hotkeys |
