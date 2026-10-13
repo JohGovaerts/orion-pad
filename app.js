@@ -649,18 +649,18 @@
     while (keyPumping) await sleep(30); // let any queued typing finish first
     keyPumping = true;
     try {
-      await sleep(150); // give the game a moment after the panel closes
+      await sleep(300); // give the game a moment after the panel closes
       ci.sendKeyEvent(ALT, true);
-      await sleep(60);
+      await sleep(200);
       for (const ch of word) {
         const k = CHAR_MAP[ch];
         if (!k) continue;
         ci.sendKeyEvent(k[0], true);
-        await sleep(50);
+        await sleep(120);
         ci.sendKeyEvent(k[0], false);
-        await sleep(50);
+        await sleep(120);
       }
-      await sleep(60);
+      await sleep(200);
     } finally {
       if (ci) ci.sendKeyEvent(ALT, false);
       keyPumping = false;

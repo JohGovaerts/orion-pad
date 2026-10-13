@@ -1,11 +1,11 @@
 /* Offline cache: the app shell plus the js-dos emulator files from its CDN.
  * Game data never goes through here; it lives in IndexedDB. */
-const VERSION = "orionpad-v5";
+const VERSION = "orionpad-v7";
 const SHELL = [
   "./",
   "index.html",
-  "style.css",
-  "app.js",
+  "style.css?v=7",
+  "app.js?v=7",
   "manifest.webmanifest",
   "icons/icon-167.png",
   "icons/icon-180.png",
@@ -48,7 +48,7 @@ self.addEventListener("fetch", (event) => {
   // App shell: network-first so updates arrive, cache when offline.
   if (url.origin === self.location.origin) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: "no-cache" })
         .then((res) => {
           if (res.ok) {
             const copy = res.clone();
