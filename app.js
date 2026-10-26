@@ -20,7 +20,7 @@
   }
 
   // ---------------------------------------------------------------- settings
-  const DEFAULTS = { audio: "normal", scale: "sharp", cycles: "auto", longpress: "450", rbtn: "1", launch: "game" };
+  const DEFAULTS = { top: "16", audio: "normal", scale: "sharp", cycles: "auto", longpress: "450", rbtn: "1", launch: "game" };
   function loadSettings() {
     try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem("orionpad.settings") || "{}") }; }
     catch { return { ...DEFAULTS }; }
@@ -322,6 +322,7 @@
       onEvent: (event, arg) => {
         if (event === "ci-ready") {
           ci = arg;
+          layoutGame();
           clearInterval(autosaveTimer);
           autosaveTimer = setInterval(() => saveNow(true), 90000);
         }
@@ -702,6 +703,27 @@
   function updateOrientation() {
     const portrait = window.innerHeight > window.innerWidth;
     document.body.classList.toggle("portrait", playing && portrait);
+    layoutGame();
+  }
+
+  // Places the game in the largest 4:3 box that fits inside the safe area,
+  // below the status bar (plus the chosen extra space), centred.
+  function layoutGame() {
+    const box = $("#dos");
+    if (!box) return;
+    const cs = getComputedStyle($("#safe-probe"));
+    const inset = (side) => parseFloat(cs["padding" + side]) || 0;
+    const t = inset("Top") + (Number(settings.top) || 0);
+    const r = inset("Right"), b = inset("Bottom"), l = inset("Left");
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const availW = Math.max(0, vw - l - r);
+    const availH = Math.max(0, vh - t - b);
+    const w = Math.floor(Math.min(availW, (availH * 4) / 3));
+    const h = Math.floor((w * 3) / 4);
+    box.style.left = Math.round(l + (availW - w) / 2) + "px";
+    box.style.top = Math.round(t + (availH - h) / 2) + "px";
+    box.style.width = w + "px";
+    box.style.height = h + "px";
   }
 
   // ---------------------------------------------------------------- wiring
@@ -720,6 +742,7 @@
     bindSetting("#set-scale", "scale", applyScale);
     bindSetting("#set-cycles", "cycles");
     bindSetting("#set-audio", "audio");
+    bindSetting("#set-top", "top", layoutGame);
     bindSetting("#set-longpress", "longpress");
     bindSetting("#set-rbtn", "rbtn");
     bindSetting("#set-launch", "launch");
@@ -779,6 +802,7 @@
     });
 
     window.addEventListener("resize", updateOrientation);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", layoutGame);
     window.addEventListener("orientationchange", updateOrientation);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden" && playing) saveNow(true);

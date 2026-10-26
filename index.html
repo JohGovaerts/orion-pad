@@ -21,10 +21,11 @@
   <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
   <script src="https://v8.js-dos.com/latest/js-dos.js" defer></script>
 
-  <link rel="stylesheet" href="style.css?v=8">
-  <script src="app.js?v=8" defer></script>
+  <link rel="stylesheet" href="style.css?v=9">
+  <script src="app.js?v=9" defer></script>
 </head>
 <body>
+  <div id="safe-probe" aria-hidden="true"></div>
   <!-- Emulator stage -->
   <div id="stage" hidden>
     <div id="dos"></div>
@@ -83,6 +84,15 @@
             <option value="350">350</option>
             <option value="450">450</option>
             <option value="600">600</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="set-top">Space under clock bar</label>
+          <select id="set-top">
+            <option value="0">None (system default)</option>
+            <option value="8">Small</option>
+            <option value="16">Medium</option>
+            <option value="28">Large</option>
           </select>
         </div>
         <div class="row">
